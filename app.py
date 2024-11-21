@@ -14,10 +14,10 @@ def main():
 
     # Input fields for the categorical and numerical features
     st.header("Input Transaction Details")
-    transaction_type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
+    type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
     amount = st.number_input("Transaction Amount", min_value=0.0, format="%.2f", value=0.0)
-    old_balance_org = st.number_input("Old Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
-    new_balance_org = st.number_input("New Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
+    oldbalanceOrg = st.number_input("Old Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
+    newbalanceOrig = st.number_input("New Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
 
     # Prepare input for the model
     if st.button("Predict"):
@@ -29,8 +29,8 @@ def main():
         input_data = pd.DataFrame({
             'type': [type_encoded],
             'amount': [amount],
-            'oldbalanceOrg': [old_balance_org],
-            'newbalanceOrig': [new_balance_org]
+            'oldbalanceOrg': oldbalanceOrg,
+            'newbalanceOrig': newbalanceOrig
         })
 
         # Make a prediction
