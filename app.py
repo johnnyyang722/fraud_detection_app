@@ -7,6 +7,10 @@ import pandas as pd
 with open('xgboost_model.pkl', 'rb') as file:
     model = pickle.load(file)
 
+# Load the preprocessing pipeline
+with open('preprocessor.pkl', 'rb') as file:
+    preprocessor = pickle.load(file)
+
 # Define the Streamlit app
 def main():
     st.title("Fraud Detection Predictor")
@@ -33,24 +37,15 @@ def main():
             'newbalanceOrig': [newbalanceOrig]
         })
 
-        # Align input with model's expected features
-        try:
-            feature_names = model.feature_names_in_
-        except AttributeError:
-            feature_names = model.get_booster().feature_names
+        # Preprocess the input data
+        input_transformed = preprocessor.transform(input_data)
 
-        # Add missing features with default values and reorder columns
-        for col in feature_names:
-            if col not in input_data:
-                input_data[col] = 0
-        input_data = input_data[feature_names]
-
-        # Ensure input data is in correct format (e.g., float32 for numerical features)
-        input_data = input_data.astype('float32')
+        # Ensure input data aligns with the model's feature expectations
+        input_transformed = pd.DataFrame(input_transformed, columns=model.feature_names_in_)
 
         # Make a prediction
-        prediction = model.predict(input_data)
-        prediction_proba = model.predict_proba(input_data)[:, 1]
+        prediction = model.predict(input_transformed)
+        prediction_proba = model.predict_proba(input_transformed)[:, 1]
 
         # Display the results
         if prediction[0] == 1:
@@ -60,5 +55,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
