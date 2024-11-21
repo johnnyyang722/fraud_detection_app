@@ -5,10 +5,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 
-# Load the XGBoost model
-with open('xgboost_model.pkl', 'rb') as file:
-    model = pickle.load(file)
-
 
 # Define the Streamlit app
 def main():
