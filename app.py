@@ -1,34 +1,30 @@
-import streamlit as st
-import pickle
-import numpy as np
 import pandas as pd
+import streamlit as st
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+import pickle
 
-# Load the preprocessor and model
+# Load preprocessor and model
 with open('preprocessor.pkl', 'rb') as file:
     preprocessor = pickle.load(file)
 
 with open('xgboost_model.pkl', 'rb') as file:
     model = pickle.load(file)
 
-# Define the Streamlit app
 def main():
     st.title("Fraud Detection Predictor")
-    st.write("Predict whether a transaction is fraudulent or legitimate.")
-
-    # Input fields for the categorical and numerical features
-    st.header("Input Transaction Details")
+    
+    # Input fields
     transaction_type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
     amount = st.number_input("Transaction Amount", min_value=0.0, format="%.2f", value=0.0)
     oldbalanceOrg = st.number_input("Old Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
     newbalanceOrig = st.number_input("New Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
-
-    # Prepare input for the model
+    
     if st.button("Predict"):
-        # Map transaction type to numerical encoding
+        # Prepare input data
         type_mapping = {'CASH_OUT': 0, 'PAYMENT': 1, 'CASH_IN': 2, 'TRANSFER': 3, 'DEBIT': 4}
         type_encoded = type_mapping[transaction_type]
 
-        # Create a DataFrame for the input
         input_data = pd.DataFrame({
             'type': [type_encoded],
             'amount': [amount],
@@ -36,28 +32,16 @@ def main():
             'newbalanceOrig': [newbalanceOrig]
         })
 
-        # Debug: print input_data
-        st.write(input_data)  # Check the structure and content of input_data
-
-        # Ensure correct data types and handle missing values
         input_data = input_data.astype({'amount': 'float64', 'oldbalanceOrg': 'float64', 'newbalanceOrig': 'float64'})
-        input_data = input_data.fillna(0)  # Fill missing values with 0, or another strategy
+        input_data = input_data.fillna(0)
 
-        # Apply the preprocessor to the input data
-        try:
-            input_transformed = preprocessor.transform(input_data)
-        except Exception as e:
-            st.error(f"Error during transformation: {str(e)}")
-            return
+        input_transformed = preprocessor.transform(input_data)
 
-        # Ensure input data is in the correct format (float32 for numerical features)
-        input_transformed = input_transformed.astype('float32')
-
-        # Make a prediction
+        # Make prediction
         prediction = model.predict(input_transformed)
         prediction_proba = model.predict_proba(input_transformed)[:, 1]
 
-        # Display the results
+        # Display results
         if prediction[0] == 1:
             st.error(f"The transaction is predicted to be **Fraudulent** with a probability of {prediction_proba[0]:.2f}.")
         else:
@@ -65,3 +49,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
