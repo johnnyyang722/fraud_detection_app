@@ -2,9 +2,13 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 
+# Load the preprocessor and model
+with open('preprocessor.pkl', 'rb') as file:
+    preprocessor = pickle.load(file)
 
+with open('xgboost_model.pkl', 'rb') as file:
+    model = pickle.load(file)
 
 # Define the Streamlit app
 def main():
@@ -32,23 +36,15 @@ def main():
             'newbalanceOrig': [newbalanceOrig]
         })
 
-        # Apply StandardScaler to the numerical features
-        scaler = StandardScaler()
-        numerical_features = ['amount', 'oldbalanceOrg', 'newbalanceOrig']
+        # Apply the preprocessor to the input data
+        input_transformed = preprocessor.transform(input_data)
 
-        # Fit the scaler on the numerical data (this only needs to be done once when you train the model)
-        input_data[numerical_features] = scaler.fit_transform(input_data[numerical_features])
-
-        # Load the pre-trained XGBoost model
-        with open('xgboost_model.pkl', 'rb') as file:
-            model = pickle.load(file)
-
-        # Ensure input data is in correct format (e.g., float32 for numerical features)
-        input_data = input_data.astype('float32')
+        # Ensure input data is in the correct format (float32 for numerical features)
+        input_transformed = input_transformed.astype('float32')
 
         # Make a prediction
-        prediction = model.predict(input_data)
-        prediction_proba = model.predict_proba(input_data)[:, 1]
+        prediction = model.predict(input_transformed)
+        prediction_proba = model.predict_proba(input_transformed)[:, 1]
 
         # Display the results
         if prediction[0] == 1:
