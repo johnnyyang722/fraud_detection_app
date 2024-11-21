@@ -36,8 +36,15 @@ def main():
             'newbalanceOrig': [newbalanceOrig]
         })
 
+        # Debug: print input_data
+        st.write(input_data)  # Check the structure and content of input_data
+
         # Apply the preprocessor to the input data
-        input_transformed = preprocessor.transform(input_data)
+        try:
+            input_transformed = preprocessor.transform(input_data)
+        except Exception as e:
+            st.error(f"Error during transformation: {str(e)}")
+            return
 
         # Ensure input data is in the correct format (float32 for numerical features)
         input_transformed = input_transformed.astype('float32')
@@ -54,5 +61,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
