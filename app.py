@@ -22,11 +22,8 @@ def main():
     
     if st.button("Predict"):
         # Prepare input data
-        type_mapping = {'CASH_OUT': 0, 'PAYMENT': 1, 'CASH_IN': 2, 'TRANSFER': 3, 'DEBIT': 4}
-        type_encoded = type_mapping[transaction_type]
-
         input_data = pd.DataFrame({
-            'type': [type_encoded],
+            'type': [transaction_type],  # Keep the categorical value as is
             'amount': [amount],
             'oldbalanceOrg': [oldbalanceOrg],
             'newbalanceOrig': [newbalanceOrig]
@@ -35,6 +32,7 @@ def main():
         input_data = input_data.astype({'amount': 'float64', 'oldbalanceOrg': 'float64', 'newbalanceOrig': 'float64'})
         input_data = input_data.fillna(0)
 
+        # Transform the input data
         input_transformed = preprocessor.transform(input_data)
 
         # Make prediction
@@ -49,4 +47,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
