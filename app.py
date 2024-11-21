@@ -1,32 +1,48 @@
 import streamlit as st
+import pickle
 import numpy as np
-import joblib
+import pandas as pd
 
-# Load your trained Random Forest model
-model = joblib.load("rf_model.pkl")  # Ensure the model filename is correct
+# Load the XGBoost model
+with open('xgboost_model.pkl', 'rb') as file:
+    model = pickle.load(file)
 
-# Title and Description
-st.title("Fraud Detection App")
-st.write("Enter transaction details to predict whether it's fraudulent or not.")
+# Define the Streamlit app
+def main():
+    st.title("Fraud Detection Predictor")
+    st.write("Predict whether a transaction is fraudulent or legitimate.")
 
-# Collect user input for transaction details
-amount = st.number_input("Transaction Amount", min_value=0.0, format="%.2f")
-type_transaction = st.selectbox("Transaction Type", ["CASH_IN", "CASH_OUT", "DEBIT", "PAYMENT", "TRANSFER"])
+    # Input fields for the categorical and numerical features
+    st.header("Input Transaction Details")
+    transaction_type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
+    amount = st.number_input("Transaction Amount", min_value=0.0, format="%.2f", value=0.0)
+    old_balance_org = st.number_input("Old Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
+    new_balance_org = st.number_input("New Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
 
-# Encode transaction type (assuming your model was trained with one-hot encoded types)
-type_encoded = [1 if type_transaction == t else 0 for t in ["CASH_OUT", "DEBIT", "PAYMENT", "TRANSFER"]]
+    # Prepare input for the model
+    if st.button("Predict"):
+        # Map transaction type to numerical encoding
+        type_mapping = {'CASH_OUT': 0, 'PAYMENT': 1, 'CASH_IN': 2, 'TRANSFER': 3, 'DEBIT': 4}
+        type_encoded = type_mapping[transaction_type]
 
-# Create input array (only 'amount' and encoded transaction types)
-input_data = [amount] + type_encoded
-input_data = np.array(input_data).reshape(1, -1)
+        # Create a DataFrame for the input
+        input_data = pd.DataFrame({
+            'type': [type_encoded],
+            'amount': [amount],
+            'oldbalanceOrg': [old_balance_org],
+            'newbalanceOrig': [new_balance_org]
+        })
 
-# Predict
-if st.button("Predict"):
-    prediction = model.predict(input_data)
-    probability = model.predict_proba(input_data)[0, 1]
+        # Make a prediction
+        prediction = model.predict(input_data)
+        prediction_proba = model.predict_proba(input_data)[:, 1]
 
-    # Display results
-    if prediction[0] == 1:
-        st.error(f"Warning: Fraudulent transaction detected with probability {probability:.2%}")
-    else:
-        st.success(f"Transaction is legitimate with probability {(1 - probability):.2%}")
+        # Display the results
+        if prediction[0] == 1:
+            st.error(f"The transaction is predicted to be **Fraudulent** with a probability of {prediction_proba[0]:.2f}.")
+        else:
+            st.success(f"The transaction is predicted to be **Legitimate** with a probability of {1 - prediction_proba[0]:.2f}.")
+
+if __name__ == "__main__":
+    main()
+
