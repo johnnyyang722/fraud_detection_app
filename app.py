@@ -39,6 +39,10 @@ def main():
         # Debug: print input_data
         st.write(input_data)  # Check the structure and content of input_data
 
+        # Ensure correct data types and handle missing values
+        input_data = input_data.astype({'amount': 'float64', 'oldbalanceOrg': 'float64', 'newbalanceOrig': 'float64'})
+        input_data = input_data.fillna(0)  # Fill missing values with 0, or another strategy
+
         # Apply the preprocessor to the input data
         try:
             input_transformed = preprocessor.transform(input_data)
@@ -61,4 +65,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
