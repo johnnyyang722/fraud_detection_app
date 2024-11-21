@@ -14,7 +14,7 @@ def main():
 
     # Input fields for the categorical and numerical features
     st.header("Input Transaction Details")
-    type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
+    transaction_type = st.selectbox("Transaction Type", ['CASH_OUT', 'PAYMENT', 'CASH_IN', 'TRANSFER', 'DEBIT'])
     amount = st.number_input("Transaction Amount", min_value=0.0, format="%.2f", value=0.0)
     oldbalanceOrg = st.number_input("Old Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
     newbalanceOrig = st.number_input("New Balance (Origin)", min_value=0.0, format="%.2f", value=0.0)
@@ -23,15 +23,30 @@ def main():
     if st.button("Predict"):
         # Map transaction type to numerical encoding
         type_mapping = {'CASH_OUT': 0, 'PAYMENT': 1, 'CASH_IN': 2, 'TRANSFER': 3, 'DEBIT': 4}
-        type_encoded = type_mapping[type]
+        type_encoded = type_mapping[transaction_type]
 
         # Create a DataFrame for the input
         input_data = pd.DataFrame({
             'type': [type_encoded],
             'amount': [amount],
-            'oldbalanceOrg': oldbalanceOrg,
-            'newbalanceOrig': newbalanceOrig
+            'oldbalanceOrg': [oldbalanceOrg],
+            'newbalanceOrig': [newbalanceOrig]
         })
+
+        # Align input with model's expected features
+        try:
+            feature_names = model.feature_names_in_
+        except AttributeError:
+            feature_names = model.get_booster().feature_names
+
+        # Add missing features with default values and reorder columns
+        for col in feature_names:
+            if col not in input_data:
+                input_data[col] = 0
+        input_data = input_data[feature_names]
+
+        # Ensure input data is in correct format (e.g., float32 for numerical features)
+        input_data = input_data.astype('float32')
 
         # Make a prediction
         prediction = model.predict(input_data)
@@ -45,4 +60,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
