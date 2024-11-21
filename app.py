@@ -23,7 +23,7 @@ def main():
     if st.button("Predict"):
         # Map transaction type to numerical encoding
         type_mapping = {'CASH_OUT': 0, 'PAYMENT': 1, 'CASH_IN': 2, 'TRANSFER': 3, 'DEBIT': 4}
-        type_encoded = type_mapping[transaction_type]
+        type_encoded = type_mapping[type]
 
         # Create a DataFrame for the input
         input_data = pd.DataFrame({
