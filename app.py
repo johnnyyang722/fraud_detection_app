@@ -1,7 +1,5 @@
 import pandas as pd
 import streamlit as st
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import pickle
 
 # Load preprocessor and model
@@ -23,14 +21,11 @@ def main():
     if st.button("Predict"):
         # Prepare input data
         input_data = pd.DataFrame({
-            'type': [transaction_type],  # Keep the categorical value as is
+            'type': [transaction_type], 
             'amount': [amount],
             'oldbalanceOrg': [oldbalanceOrg],
             'newbalanceOrig': [newbalanceOrig]
         })
-
-        input_data = input_data.astype({'amount': 'float64', 'oldbalanceOrg': 'float64', 'newbalanceOrig': 'float64'})
-        input_data = input_data.fillna(0)
 
         # Transform the input data
         input_transformed = preprocessor.transform(input_data)
@@ -47,5 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
